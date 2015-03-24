@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6751" systemVersion="14C1514" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6736"/>
+    </dependencies>
+    <scenes>
+        <!--Root View Controller-->
+        <scene sceneID="ufC-wZ-h7g">
+            <objects>
+                <viewController id="vXZ-lx-hvc" customClass="RootViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="jyV-Pf-zRb"/>
+                        <viewControllerLayoutGuide type="bottom" id="2fi-mo-0CV"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="NPu-Pb-eed">
+                                <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
+                                <connections>
+                                    <outlet property="delegate" destination="vXZ-lx-hvc" id="IkN-Ja-e8f"/>
+                                </connections>
+                            </mapView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="NPu-Pb-eed" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="5wn-xJ-Ek8"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="NPu-Pb-eed" secondAttribute="bottom" id="Ntb-O8-0uC"/>
+                            <constraint firstItem="NPu-Pb-eed" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="QyQ-oS-qHp"/>
+                            <constraint firstAttribute="trailing" secondItem="NPu-Pb-eed" secondAttribute="trailing" id="qe3-gm-J7X"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="subviews">
+                                <exclude reference="NPu-Pb-eed"/>
+                            </mask>
+                            <mask key="constraints">
+                                <exclude reference="Ntb-O8-0uC"/>
+                                <exclude reference="5wn-xJ-Ek8"/>
+                                <exclude reference="QyQ-oS-qHp"/>
+                                <exclude reference="qe3-gm-J7X"/>
+                            </mask>
+                        </variation>
+                        <variation key="widthClass=compact">
+                            <mask key="subviews">
+                                <include reference="NPu-Pb-eed"/>
+                            </mask>
+                            <mask key="constraints">
+                                <include reference="Ntb-O8-0uC"/>
+                                <include reference="5wn-xJ-Ek8"/>
+                                <include reference="QyQ-oS-qHp"/>
+                                <include reference="qe3-gm-J7X"/>
+                            </mask>
+                        </variation>
+                    </view>
+                    <connections>
+                        <outlet property="mapView" destination="NPu-Pb-eed" id="Shu-rV-geK"/>
+                        <outlet property="view" destination="NPu-Pb-eed" id="Skb-PZ-nSW"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+</document>
