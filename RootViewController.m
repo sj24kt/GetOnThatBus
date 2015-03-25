@@ -9,13 +9,14 @@
 #import "RootViewController.h"
 #import <MapKit/MapKit.h>
 
-@interface RootViewController ()
+@interface RootViewController () <MKMapViewDelegate>
 
 @property (strong, nonatomic) IBOutlet MKMapView *mapView;
-@property MKPointAnnotation *busStopAnnotation;
-@property CLLocationManager *locationManager;
-@property NSDictionary *feedDictionary;
-@property NSMutableArray *feedArray;
+@property NSArray *busStopsArray;
+@property NSDictionary *selectedDictionary;
+@property MKPointAnnotation *paceAnnotation;
+@property MKPointAnnotation *metraAnnotation;
+@property MKPointAnnotation *noTransferAnnotation;
 
 @end
 
@@ -24,64 +25,86 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    self.feedDictionary = [NSDictionary new];
-    self.feedArray = [NSMutableArray new];
+    self.selectedDictionary = [[NSDictionary alloc]init];
 
+    [self requestAPI];
 
-    double latitude = 41.8781136;
-    double longitude = -87.6297982;
-    self.busStopAnnotation = [MKPointAnnotation new];
-    self.busStopAnnotation = [MKPointAnnotation new];
-    self.busStopAnnotation.title = @"Chicago Downtown";
-    self.busStopAnnotation.coordinate = CLLocationCoordinate2DMake(latitude, longitude);
-    [self.mapView addAnnotation:self.busStopAnnotation];
-
-    [self geoCodeLocation:@"Chicago, IL"];
-    [self displayUserLocation];
 }
 
-// sets the pin - runs for each annotation view
--(MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation {
+#pragma mark - Helper methods
 
-    if (![annotation isEqual:mapView.userLocation]) {
-        MKPinAnnotationView *pin = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:nil];
-        //pin.image = [UIImage imageNamed:@"makersImage"];
-        pin.canShowCallout = YES;
-        pin.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
-        return pin;
-    } else {
-        return nil;
-    }
-}
+// Accesses and deserializes API
+- (void)requestAPI {
 
-- (void)geoCodeLocation:(NSString *)addressString {
+    NSURL *url = [NSURL URLWithString:@"https://s3.amazonaws.com/mobile-makers-lib/bus.json"];
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+        NSDictionary *jsonDictionary = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&connectionError];
+        self.busStopsArray = [jsonDictionary objectForKey:@"row"];
 
-    NSString *address = addressString;
-    CLGeocoder *geoCoder = [CLGeocoder new];
-    [geoCoder geocodeAddressString:address completionHandler:^(NSArray *placemarks, NSError *error) {
-        for (CLPlacemark *place in placemarks) {
-            MKPointAnnotation *annotation = [MKPointAnnotation new];
-            annotation.coordinate = place.location.coordinate;
-            annotation.title = place.name;
-            [self.mapView addAnnotation:annotation];
-            //NSLog(@"%@", annotation.description);
+        [self getBusStopsData];
 
-        }
+        // Zooms map to Chicago area
+        CLLocationCoordinate2D centerCoordinate = CLLocationCoordinate2DMake(41.84, -87.70);
+        MKCoordinateSpan span = MKCoordinateSpanMake(.3, .3);
+        MKCoordinateRegion region = MKCoordinateRegionMake(centerCoordinate, span);
+        [self.mapView setRegion:region];
+
     }];
 }
 
-- (void)displayUserLocation {
-    self.locationManager = [CLLocationManager new];
-    [self.locationManager requestWhenInUseAuthorization];
-    self.mapView.showsUserLocation = YES;
+// Enumerates through each bus-stop's data in API
+- (void)getBusStopsData {
 
+    for (NSDictionary *busDictionary in self.busStopsArray) {
+
+        // Retrieves necessary data from API for each bus stop
+        NSString *latitude = [busDictionary objectForKey:@"latitude"];
+        NSString *longitude = [busDictionary objectForKey:@"longitude"];
+        double latConvertedToDouble = [latitude doubleValue];
+        double longConvertedToDouble = [longitude doubleValue];
+
+        // Adds the appropriate custom class (which subclass PointAnnotationView) depending on the bus-stops transfer option
+        NSString *transferMode = [busDictionary objectForKey:@"inter_modal"];
+
+        if ([transferMode isEqualToString:@"Pace"]) {
+
+            self.paceAnnotation = [MKPointAnnotation new];
+            self.paceAnnotation.coordinate = CLLocationCoordinate2DMake(latConvertedToDouble, longConvertedToDouble);
+            self.paceAnnotation.title = [busDictionary objectForKey:@"cta_stop_name"];
+            self.paceAnnotation.subtitle = [busDictionary objectForKey:@"routes"];
+            [self.mapView addAnnotation:self.paceAnnotation];
+
+        }
+        else if ([transferMode isEqualToString:@"inter_modal"]) {
+
+            self.metraAnnotation = [MKPointAnnotation new];
+            self.metraAnnotation.coordinate = CLLocationCoordinate2DMake(latConvertedToDouble, longConvertedToDouble);
+            self.metraAnnotation.title = [busDictionary objectForKey:@"cta_stop_name"];
+            self.metraAnnotation.subtitle = [busDictionary objectForKey:@"routes"];
+            [self.mapView addAnnotation:self.metraAnnotation];
+
+        } else {
+
+            self.noTransferAnnotation = [[MKPointAnnotation alloc]init];
+            self.noTransferAnnotation.coordinate = CLLocationCoordinate2DMake(latConvertedToDouble, longConvertedToDouble);
+            self.noTransferAnnotation.title = [busDictionary objectForKey:@"cta_stop_name"];
+            self.noTransferAnnotation.subtitle = [busDictionary objectForKey:@"routes"];
+            [self.mapView addAnnotation:self.noTransferAnnotation];
+
+        }
+    }
 }
 
-
-
-
-
 @end
+
+
+
+
+
+
+
+
 
 
 
